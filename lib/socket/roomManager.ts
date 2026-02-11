@@ -5,6 +5,7 @@ import {
   createInitialState,
   orientAssam,
   rollAndMoveAssam,
+  chooseBorderDirection,
   processTribute,
   placeCarpet,
   advanceToNextPlayer,
@@ -205,11 +206,50 @@ export function handleRoll(
   if (playerId === undefined) return null;
   if (room.state.players[room.state.currentPlayerIndex].id !== playerId) return null;
 
-  let newState = rollAndMoveAssam(room.state);
+  const newState = rollAndMoveAssam(room.state);
 
-  // Automatically process tribute after rolling
-  newState = processTribute(newState);
+  // Don't auto-process tribute — let clients see it first.
+  // The active player will send game:tributeContinue to proceed.
+  room.state = newState;
+  return newState;
+}
 
+export function handleBorderChoice(
+  roomId: string,
+  socketId: string,
+  direction: Direction
+): GameState | null {
+  const room = rooms.get(roomId);
+  if (!room || !room.state) return null;
+  if (room.state.phase !== 'borderChoice') return null;
+
+  // Verify it's this player's turn
+  const playerId = room.socketToPlayer.get(socketId);
+  if (playerId === undefined) return null;
+  if (room.state.players[room.state.currentPlayerIndex].id !== playerId) return null;
+
+  const newState = chooseBorderDirection(room.state, direction);
+  if (newState === room.state) return null; // Invalid
+
+  // Don't auto-process tribute — let clients see it first.
+  room.state = newState;
+  return newState;
+}
+
+export function handleTributeContinue(
+  roomId: string,
+  socketId: string
+): GameState | null {
+  const room = rooms.get(roomId);
+  if (!room || !room.state) return null;
+  if (room.state.phase !== 'tribute') return null;
+
+  // Verify it's this player's turn
+  const playerId = room.socketToPlayer.get(socketId);
+  if (playerId === undefined) return null;
+  if (room.state.players[room.state.currentPlayerIndex].id !== playerId) return null;
+
+  const newState = processTribute(room.state);
   room.state = newState;
   return newState;
 }

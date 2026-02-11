@@ -159,6 +159,14 @@ export function useMultiplayer() {
     getSocket().emit('game:roll', {});
   }, []);
 
+  const sendBorderChoice = useCallback((direction: Direction) => {
+    getSocket().emit('game:borderChoice', { direction });
+  }, []);
+
+  const sendTributeContinue = useCallback(() => {
+    getSocket().emit('game:tributeContinue', {});
+  }, []);
+
   const sendPlace = useCallback((placement: CarpetPlacement) => {
     getSocket().emit('game:place', { placement });
   }, []);
@@ -190,6 +198,8 @@ export function useMultiplayer() {
     startGame,
     sendOrient,
     sendRoll,
+    sendBorderChoice,
+    sendTributeContinue,
     sendPlace,
     onGameStarted,
     onDiceRolled,

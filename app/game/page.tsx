@@ -20,7 +20,7 @@ export default function GamePage() {
   const router = useRouter();
   const store = useGameStore();
   const myPlayerId = useLobbyStore((s) => s.myPlayerId);
-  const { sendOrient, sendRoll, sendPlace, onDiceRolled, flushDiceState } = useMultiplayer();
+  const { sendOrient, sendRoll, sendBorderChoice, sendTributeContinue, sendPlace, onDiceRolled, flushDiceState } = useMultiplayer();
   const [diceOverlay, setDiceOverlay] = useState<number | null>(null);
   const pendingDiceRef = useRef<DiceResult | null>(null);
 
@@ -81,15 +81,22 @@ export default function GamePage() {
 
   const handleBorderChoice = useCallback(
     (dir: Direction) => {
-      // Border choice is handled locally for now (server processes it in roll)
-      store.chooseBorderDirection(dir);
+      if (isOnline) {
+        sendBorderChoice(dir);
+      } else {
+        store.chooseBorderDirection(dir);
+      }
     },
-    [store]
+    [store, isOnline, sendBorderChoice]
   );
 
   const handleTributeContinue = useCallback(() => {
-    store.processTribute();
-  }, [store]);
+    if (isOnline) {
+      sendTributeContinue();
+    } else {
+      store.processTribute();
+    }
+  }, [store, isOnline, sendTributeContinue]);
 
   const handlePlacementSelect = useCallback(
     (placement: CarpetPlacement) => {

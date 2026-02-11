@@ -10,6 +10,8 @@ import {
   startGame,
   handleOrient,
   handleRoll,
+  handleBorderChoice,
+  handleTributeContinue,
   handlePlace,
   handlePlayerDisconnect,
 } from './roomManager';
@@ -190,6 +192,52 @@ export function initSocketServer(httpServer: HTTPServer): SocketIOServer {
         io!.to(currentPlayer.socketId).emit('game:yourTurn', {
           playerId: currentPlayer.id,
         });
+      }
+    });
+
+    socket.on('game:borderChoice', (data: { direction: Direction }) => {
+      const room = getRoomBySocketId(socket.id);
+      if (!room) {
+        socket.emit('game:error', { message: 'You are not in a room' });
+        return;
+      }
+
+      const state = handleBorderChoice(room.id, socket.id, data.direction);
+      if (!state) {
+        socket.emit('game:error', {
+          message: 'Invalid border choice or not your turn',
+        });
+        return;
+      }
+
+      io!.to(room.id).emit('game:stateUpdate', { state });
+
+      if (state.gameOver) {
+        io!.to(room.id).emit('game:over', { state });
+        return;
+      }
+    });
+
+    socket.on('game:tributeContinue', () => {
+      const room = getRoomBySocketId(socket.id);
+      if (!room) {
+        socket.emit('game:error', { message: 'You are not in a room' });
+        return;
+      }
+
+      const state = handleTributeContinue(room.id, socket.id);
+      if (!state) {
+        socket.emit('game:error', {
+          message: 'Cannot process tribute or not your turn',
+        });
+        return;
+      }
+
+      io!.to(room.id).emit('game:stateUpdate', { state });
+
+      if (state.gameOver) {
+        io!.to(room.id).emit('game:over', { state });
+        return;
       }
     });
 
