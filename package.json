@@ -5,8 +5,8 @@
   "scripts": {
     "dev": "tsx watch server.ts",
     "build": "next build",
-    "start": "node --import tsx/esm server.ts",
-    "start:socket": "node --import tsx/esm socket-server.ts",
+    "start": "tsx server.ts",
+    "start:socket": "tsx socket-server.ts",
     "lint": "eslint"
   },
   "dependencies": {
