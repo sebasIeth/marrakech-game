@@ -1,65 +1,118 @@
-import Image from "next/image";
+'use client';
 
-export default function Home() {
+import { useEffect } from 'react';
+import { useRouter } from 'next/navigation';
+import { useLobbyStore } from '@/lib/store/lobbyStore';
+import { useMultiplayer } from '@/hooks/useMultiplayer';
+import { LobbyBackground } from '@/components/lobby/LobbyBackground';
+import MainMenu from '@/components/lobby/MainMenu';
+import LocalSetup from '@/components/lobby/LocalSetup';
+import OnlineSetup from '@/components/lobby/OnlineSetup';
+
+export default function HomePage() {
+  const screen = useLobbyStore((s) => s.screen);
+
   return (
-    <div className="flex min-h-screen items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex min-h-screen w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
+    <div className="min-h-screen bg-[#FFF8E7]">
+      <LobbyBackground />
+      {screen === 'menu' && <MainMenu />}
+      {screen === 'localSetup' && <LocalSetup />}
+      {screen === 'onlineSetup' && <OnlineSetup />}
+      {screen === 'waiting' && <WaitingRoom />}
+    </div>
+  );
+}
+
+function WaitingRoom() {
+  const lobby = useLobbyStore();
+  const router = useRouter();
+  const { disconnect, startGame, onGameStarted } = useMultiplayer();
+
+  useEffect(() => {
+    onGameStarted(() => {
+      router.push('/game');
+    });
+  }, [onGameStarted, router]);
+
+  const handleBack = () => {
+    disconnect();
+    lobby.reset();
+  };
+
+  const canStart = lobby.isCreator && lobby.onlinePlayers.length >= 2;
+
+  return (
+    <div className="relative min-h-screen flex items-center justify-center p-4">
+      <div
+        className="relative z-10 rounded-2xl shadow-lg p-8 max-w-md w-full text-center space-y-6"
+        style={{
+          background: 'rgba(255,255,255,0.92)',
+          backdropFilter: 'blur(12px)',
+          border: '1px solid #E8D5A3',
+        }}
+      >
+        <h2 className="font-display text-2xl font-bold text-[#2C1810]">
+          Sala de Espera
+        </h2>
+
+        <div className="rounded-xl p-4" style={{ background: 'linear-gradient(135deg, #FFF8E7, #F4E8C1)', border: '1px solid #E8D5A3' }}>
+          <p className="text-xs text-[#8B6914] mb-1">Codigo de sala</p>
+          <p className="text-3xl font-mono font-bold text-[#C19A3E] tracking-widest">
+            {lobby.roomId}
           </p>
         </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
+
+        <div className="space-y-2">
+          <p className="text-sm text-[#8B6914]">
+            Jugadores ({lobby.onlinePlayers.length}/{lobby.numPlayers})
+          </p>
+          {lobby.onlinePlayers.map((player) => (
+            <div
+              key={player.id}
+              className="flex items-center gap-3 p-2.5 rounded-xl bg-[#FFF8E7]"
+            >
+              <div
+                className="w-6 h-6 rounded-lg"
+                style={{ backgroundColor: player.color.primary }}
+              />
+              <span className="text-sm font-medium text-[#2C1810]">{player.name}</span>
+              {player.id === lobby.myPlayerId && (
+                <span className="text-[10px] text-[#C19A3E] font-semibold">(Tu)</span>
+              )}
+              <span className="ml-auto w-2 h-2 rounded-full bg-green-500" />
+            </div>
+          ))}
         </div>
-      </main>
+
+        {!canStart && (
+          <div className="flex items-center justify-center gap-1.5">
+            <span className="text-xs text-[#8B6914]/60 mr-2">Esperando jugadores</span>
+            <div className="w-1.5 h-1.5 rounded-full bg-[#C19A3E] animate-bounce" style={{ animationDelay: '0ms' }} />
+            <div className="w-1.5 h-1.5 rounded-full bg-[#C19A3E] animate-bounce" style={{ animationDelay: '150ms' }} />
+            <div className="w-1.5 h-1.5 rounded-full bg-[#C19A3E] animate-bounce" style={{ animationDelay: '300ms' }} />
+          </div>
+        )}
+
+        {canStart && (
+          <button
+            onClick={startGame}
+            className="w-full py-3 rounded-2xl font-bold text-sm text-white transition-all"
+            style={{
+              background: 'linear-gradient(135deg, #1E8449, #27AE60)',
+              boxShadow: '0 4px 16px rgba(30,132,73,0.3)',
+            }}
+          >
+            Iniciar Partida
+          </button>
+        )}
+
+        <button
+          onClick={handleBack}
+          className="text-sm text-[#8B6914] hover:text-[#C19A3E] transition-colors"
+        >
+          Volver al Menu
+        </button>
+      </div>
     </div>
   );
 }
