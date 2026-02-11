@@ -1,0 +1,9 @@
+services:
+  - type: web
+    name: marrakech-socket
+    runtime: node
+    buildCommand: npm install
+    startCommand: npm run start:socket
+    envVars:
+      - key: NODE_ENV
+        value: production

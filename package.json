@@ -6,6 +6,7 @@
     "dev": "tsx watch server.ts",
     "build": "next build",
     "start": "node --import tsx/esm server.ts",
+    "start:socket": "node --import tsx/esm socket-server.ts",
     "lint": "eslint"
   },
   "dependencies": {
@@ -18,6 +19,7 @@
     "socket.io": "^4.8.3",
     "socket.io-client": "^4.8.3",
     "tailwind-merge": "^3.4.0",
+    "tsx": "^4.21.0",
     "zustand": "^5.0.11"
   },
   "devDependencies": {
@@ -28,7 +30,6 @@
     "eslint": "^9",
     "eslint-config-next": "16.1.6",
     "tailwindcss": "^4",
-    "tsx": "^4.21.0",
     "typescript": "^5"
   }
 }

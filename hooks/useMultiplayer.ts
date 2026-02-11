@@ -19,11 +19,22 @@ let pendingDiceState: GameState | null = null;
 
 function getSocket(): Socket {
   if (!socket) {
-    socket = io({
-      path: '/api/socket/io',
-      addTrailingSlash: false,
-      autoConnect: false,
-    });
+    const socketUrl = process.env.NEXT_PUBLIC_SOCKET_URL;
+    if (socketUrl) {
+      // External Socket.IO server (e.g. Render) — connect by URL
+      socket = io(socketUrl, {
+        path: '/api/socket/io',
+        addTrailingSlash: false,
+        autoConnect: false,
+      });
+    } else {
+      // Same-origin (custom server.ts in dev / self-hosted)
+      socket = io({
+        path: '/api/socket/io',
+        addTrailingSlash: false,
+        autoConnect: false,
+      });
+    }
   }
   return socket;
 }
