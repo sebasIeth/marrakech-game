@@ -63,6 +63,11 @@ export default function MainMenu() {
     setScreen('onlineSetup');
   };
 
+  const handleBlockchain = () => {
+    setMode('blockchain');
+    setScreen('blockchainSetup');
+  };
+
   return (
     <div className="relative flex min-h-screen items-center justify-center overflow-hidden px-4 py-6">
       <motion.div
@@ -201,6 +206,30 @@ export default function MainMenu() {
                     <path d="M4 16 Q11 14 18 16" stroke="white" strokeWidth="0.8" opacity="0.3" />
                   </svg>
                   Jugar Online
+                </div>
+                <div className="absolute inset-0 opacity-[0.04]" style={{
+                  backgroundImage: 'repeating-linear-gradient(45deg, white 0px, white 1px, transparent 1px, transparent 8px)',
+                }} />
+              </motion.button>
+
+              {/* Jugar On-Chain */}
+              <motion.button
+                whileHover={{ scale: 1.02, y: -2 }}
+                whileTap={{ scale: 0.98 }}
+                onClick={handleBlockchain}
+                className="relative w-full py-3 rounded-2xl font-bold text-sm text-white overflow-hidden transition-shadow hover:shadow-lg"
+                style={{
+                  background: 'linear-gradient(135deg, #1A8A7D 0%, #2ECC71 50%, #1A8A7D 100%)',
+                  boxShadow: '0 4px 16px rgba(26,138,125,0.3), inset 0 1px 0 rgba(255,255,255,0.2)',
+                }}
+              >
+                <div className="relative flex items-center justify-center gap-2.5">
+                  <svg width="18" height="18" viewBox="0 0 22 22" fill="none">
+                    <rect x="3" y="7" width="16" height="8" rx="2" stroke="white" strokeWidth="1.5" opacity="0.7" />
+                    <path d="M7 7V5a4 4 0 018 0v2" stroke="white" strokeWidth="1.5" opacity="0.7" strokeLinecap="round" />
+                    <circle cx="11" cy="11" r="1.5" fill="white" opacity="0.8" />
+                  </svg>
+                  Jugar On-Chain
                 </div>
                 <div className="absolute inset-0 opacity-[0.04]" style={{
                   backgroundImage: 'repeating-linear-gradient(45deg, white 0px, white 1px, transparent 1px, transparent 8px)',

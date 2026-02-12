@@ -1,6 +1,6 @@
 export type Direction = 'N' | 'S' | 'E' | 'W';
 export type Phase = 'orient' | 'roll' | 'moving' | 'borderChoice' | 'tribute' | 'place' | 'gameOver';
-export type GameMode = 'local' | 'online';
+export type GameMode = 'local' | 'online' | 'blockchain';
 
 export interface Position {
   row: number;

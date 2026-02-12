@@ -10,6 +10,8 @@
     "lint": "eslint"
   },
   "dependencies": {
+    "@rainbow-me/rainbowkit": "^2.2.10",
+    "@tanstack/react-query": "^5.90.21",
     "clsx": "^2.1.1",
     "framer-motion": "^12.34.0",
     "nanoid": "^5.1.6",
@@ -20,6 +22,8 @@
     "socket.io-client": "^4.8.3",
     "tailwind-merge": "^3.4.0",
     "tsx": "^4.21.0",
+    "viem": "^2.45.3",
+    "wagmi": "^2.19.5",
     "zustand": "^5.0.11"
   },
   "devDependencies": {

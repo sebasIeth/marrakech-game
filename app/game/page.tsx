@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { useGameStore } from '@/lib/store/gameStore';
 import { useLobbyStore } from '@/lib/store/lobbyStore';
 import { useMultiplayer } from '@/hooks/useMultiplayer';
+import { useBlockchainGame } from '@/hooks/useBlockchainGame';
 import { GameBoard } from '@/components/game/GameBoard';
 import { GameHeader } from '@/components/game/GameHeader';
 import { PlayerPanel } from '@/components/game/PlayerPanel';
@@ -12,6 +13,9 @@ import { PhaseControls } from '@/components/game/PhaseControls';
 import { ActionLog } from '@/components/game/ActionLog';
 import { GameOverScreen } from '@/components/game/GameOverScreen';
 import { DiceOverlay } from '@/components/game/DiceOverlay';
+import { TransactionStatus } from '@/components/game/TransactionStatus';
+import { DiceCommitReveal } from '@/components/game/DiceCommitReveal';
+import { WalletBadge } from '@/components/game/WalletBadge';
 import { getValidDirections } from '@/lib/game/engine';
 import { rollDice } from '@/lib/game/dice';
 import type { CarpetPlacement, DiceResult, Direction } from '@/lib/game/types';
@@ -25,8 +29,12 @@ export default function GamePage() {
   const pendingDiceRef = useRef<DiceResult | null>(null);
 
   const isOnline = store.mode === 'online';
+  const isBlockchain = store.mode === 'blockchain';
   const currentPlayer = store.players[store.currentPlayerIndex];
-  const isMyTurn = isOnline ? currentPlayer?.id === myPlayerId : true;
+  const isMyTurn = isOnline || isBlockchain ? currentPlayer?.id === myPlayerId : true;
+
+  // Blockchain hook — only active when mode is blockchain
+  const blockchain = useBlockchainGame();
 
   // In online mode, show the dice overlay when the server broadcasts a roll
   useEffect(() => {
@@ -47,31 +55,37 @@ export default function GamePage() {
 
   const handleOrient = useCallback(
     (dir: Direction) => {
-      if (isOnline) {
+      if (isBlockchain) {
+        blockchain.orientAssam(dir);
+      } else if (isOnline) {
         sendOrient(dir);
       } else {
         store.orientAssam(dir);
       }
     },
-    [store, isOnline, sendOrient]
+    [store, isOnline, isBlockchain, sendOrient, blockchain]
   );
 
   const handleRoll = useCallback(() => {
-    if (isOnline) {
-      // In online mode, the server rolls — show overlay when state updates
+    if (isBlockchain) {
+      // In blockchain mode, dice is a two-step process handled by DiceCommitReveal
+      if (blockchain.isDiceCommitPhase) {
+        blockchain.commitDice();
+      } else if (blockchain.isDiceRevealPhase) {
+        blockchain.revealDice();
+      }
+    } else if (isOnline) {
       sendRoll();
     } else {
-      // Local: pre-roll dice, show overlay first, apply movement when overlay finishes
       const result = rollDice();
       pendingDiceRef.current = result;
       setDiceOverlay(result.value);
     }
-  }, [isOnline, sendRoll]);
+  }, [isOnline, isBlockchain, sendRoll, blockchain]);
 
   const handleDiceOverlayDone = useCallback(() => {
     setDiceOverlay(null);
     if (isOnline) {
-      // Apply the queued server state now that the animation finished
       flushDiceState();
     } else if (pendingDiceRef.current) {
       store.rollDice(pendingDiceRef.current);
@@ -81,32 +95,38 @@ export default function GamePage() {
 
   const handleBorderChoice = useCallback(
     (dir: Direction) => {
-      if (isOnline) {
+      if (isBlockchain) {
+        blockchain.chooseBorderDirection(dir);
+      } else if (isOnline) {
         sendBorderChoice(dir);
       } else {
         store.chooseBorderDirection(dir);
       }
     },
-    [store, isOnline, sendBorderChoice]
+    [store, isOnline, isBlockchain, sendBorderChoice, blockchain]
   );
 
   const handleTributeContinue = useCallback(() => {
-    if (isOnline) {
+    if (isBlockchain) {
+      blockchain.acknowledgeTribute();
+    } else if (isOnline) {
       sendTributeContinue();
     } else {
       store.processTribute();
     }
-  }, [store, isOnline, sendTributeContinue]);
+  }, [store, isOnline, isBlockchain, sendTributeContinue, blockchain]);
 
   const handlePlacementSelect = useCallback(
     (placement: CarpetPlacement) => {
-      if (isOnline) {
+      if (isBlockchain) {
+        blockchain.placeCarpet(placement);
+      } else if (isOnline) {
         sendPlace(placement);
       } else {
         store.placeCarpet(placement);
       }
     },
-    [store, isOnline, sendPlace]
+    [store, isOnline, isBlockchain, sendPlace, blockchain]
   );
 
   const handleCellClick = useCallback(
@@ -118,18 +138,25 @@ export default function GamePage() {
 
   const handlePlaceConfirm = useCallback(() => {
     if (store.selectedPlacement) {
-      if (isOnline) {
+      if (isBlockchain) {
+        blockchain.placeCarpet(store.selectedPlacement);
+      } else if (isOnline) {
         sendPlace(store.selectedPlacement);
       } else {
         store.placeCarpet(store.selectedPlacement);
       }
     }
-  }, [store, isOnline, sendPlace]);
+  }, [store, isOnline, isBlockchain, sendPlace, blockchain]);
 
   const handlePlayAgain = useCallback(() => {
+    if (isBlockchain) {
+      // Go back to blockchain setup
+      router.push('/');
+      return;
+    }
     const names = store.players.map((p) => p.name);
     store.initGame(store.numPlayers, store.mode, names);
-  }, [store]);
+  }, [store, isBlockchain, router]);
 
   const handleBackToMenu = useCallback(() => {
     store.resetGame();
@@ -156,11 +183,16 @@ export default function GamePage() {
   return (
     <div className="min-h-screen bg-[#FFF8E7] flex flex-col">
       {/* Header */}
-      <GameHeader
-        currentPlayer={currentPlayer}
-        phase={store.phase}
-        turnNumber={store.turnNumber}
-      />
+      <div className="flex items-center justify-between px-4">
+        <div className="flex-1">
+          <GameHeader
+            currentPlayer={currentPlayer}
+            phase={store.phase}
+            turnNumber={store.turnNumber}
+          />
+        </div>
+        {isBlockchain && <WalletBadge />}
+      </div>
 
       {/* Main content */}
       <div className="flex-1 flex flex-col lg:flex-row gap-4 p-4 max-w-7xl mx-auto w-full">
@@ -186,27 +218,57 @@ export default function GamePage() {
           <PlayerPanel
             players={store.players}
             currentPlayerIndex={store.currentPlayerIndex}
-            myPlayerId={isOnline ? myPlayerId : null}
+            myPlayerId={isOnline || isBlockchain ? myPlayerId : null}
           />
+
+          {/* Transaction status for blockchain mode */}
+          {isBlockchain && (
+            <TransactionStatus
+              status={blockchain.txStatus}
+              message={blockchain.txMessage}
+              error={blockchain.txError}
+            />
+          )}
 
           {/* Phase controls */}
           {isMyTurn ? (
-            <PhaseControls
-              phase={store.phase}
-              currentDirection={store.assam.direction}
-              validDirections={validDirections}
-              currentTribute={store.currentTribute}
-              borderChoiceInfo={store.borderChoiceInfo}
-              players={store.players}
-              validPlacements={store.validPlacements}
-              selectedPlacement={store.selectedPlacement}
-              onOrient={handleOrient}
-              onRoll={handleRoll}
-              onBorderChoice={handleBorderChoice}
-              onTributeContinue={handleTributeContinue}
-              onPlaceConfirm={handlePlaceConfirm}
-            />
-          ) : isOnline && store.phase !== 'moving' && store.phase !== 'gameOver' ? (
+            <>
+              {/* Blockchain dice commit-reveal replaces the normal roll button */}
+              {isBlockchain && (blockchain.isDiceCommitPhase || blockchain.isDiceRevealPhase) ? (
+                <div
+                  className="rounded-2xl overflow-hidden p-4"
+                  style={{
+                    background: 'linear-gradient(180deg, #FDFAF0 0%, #F8F0DC 100%)',
+                    border: '1px solid #E0D0A8',
+                  }}
+                >
+                  <DiceCommitReveal
+                    isDiceCommitPhase={blockchain.isDiceCommitPhase}
+                    isDiceRevealPhase={blockchain.isDiceRevealPhase}
+                    txStatus={blockchain.txStatus}
+                    onCommit={blockchain.commitDice}
+                    onReveal={blockchain.revealDice}
+                  />
+                </div>
+              ) : (
+                <PhaseControls
+                  phase={store.phase}
+                  currentDirection={store.assam.direction}
+                  validDirections={validDirections}
+                  currentTribute={store.currentTribute}
+                  borderChoiceInfo={store.borderChoiceInfo}
+                  players={store.players}
+                  validPlacements={store.validPlacements}
+                  selectedPlacement={store.selectedPlacement}
+                  onOrient={handleOrient}
+                  onRoll={handleRoll}
+                  onBorderChoice={handleBorderChoice}
+                  onTributeContinue={handleTributeContinue}
+                  onPlaceConfirm={handlePlaceConfirm}
+                />
+              )}
+            </>
+          ) : (isOnline || isBlockchain) && store.phase !== 'moving' && store.phase !== 'gameOver' ? (
             <div
               className="rounded-2xl overflow-hidden text-center py-6 px-4"
               style={{

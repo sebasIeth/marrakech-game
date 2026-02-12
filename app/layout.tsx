@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import { Playfair_Display, Inter } from 'next/font/google';
 import './globals.css';
+import WagmiProvider from '@/components/providers/WagmiProvider';
 
 const playfair = Playfair_Display({
   variable: '--font-display',
@@ -27,7 +28,9 @@ export default function RootLayout({
   return (
     <html lang="es">
       <body className={`${playfair.variable} ${inter.variable} antialiased font-body`}>
-        {children}
+        <WagmiProvider>
+          {children}
+        </WagmiProvider>
       </body>
     </html>
   );

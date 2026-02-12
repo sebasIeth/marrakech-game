@@ -1,0 +1,12 @@
+{
+  "factory": "0x0d1a124925546827B03Fff02e933bDB45a3F5A3a",
+  "usdc": "0x036CbD53842c5426634e7929541eC2318f3dCF7e",
+  "stakeAmount": 1000000,
+  "platformFeeBps": 2000,
+  "platformWallet": "0xE2b7ACdC0580e329E5998ff0948654FF495917DA",
+  "network": "baseSepolia",
+  "chainId": 84532,
+  "deployer": "0xE2b7ACdC0580e329E5998ff0948654FF495917DA",
+  "timestamp": "2026-02-12T19:00:22.400Z",
+  "blockNumber": 37577267
+}

@@ -8,6 +8,8 @@ import { LobbyBackground } from '@/components/lobby/LobbyBackground';
 import MainMenu from '@/components/lobby/MainMenu';
 import LocalSetup from '@/components/lobby/LocalSetup';
 import OnlineSetup from '@/components/lobby/OnlineSetup';
+import BlockchainSetup from '@/components/lobby/BlockchainSetup';
+import BlockchainWaiting from '@/components/lobby/BlockchainWaiting';
 
 export default function HomePage() {
   const screen = useLobbyStore((s) => s.screen);
@@ -19,6 +21,8 @@ export default function HomePage() {
       {screen === 'localSetup' && <LocalSetup />}
       {screen === 'onlineSetup' && <OnlineSetup />}
       {screen === 'waiting' && <WaitingRoom />}
+      {screen === 'blockchainSetup' && <BlockchainSetup />}
+      {screen === 'blockchainWaiting' && <BlockchainWaiting />}
     </div>
   );
 }

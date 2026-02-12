@@ -4,7 +4,7 @@ import { create } from 'zustand';
 import type { GameMode, Player } from '@/lib/game/types';
 
 interface LobbyState {
-  screen: 'menu' | 'localSetup' | 'onlineSetup' | 'waiting';
+  screen: 'menu' | 'localSetup' | 'onlineSetup' | 'waiting' | 'blockchainSetup' | 'blockchainWaiting';
   mode: GameMode;
   numPlayers: number;
   playerNames: string[];
@@ -12,6 +12,9 @@ interface LobbyState {
   onlinePlayers: Player[];
   isCreator: boolean;
   myPlayerId: number | null;
+  // Blockchain-specific
+  gameContractAddress: string;
+  walletAddress: string;
 
   setScreen: (screen: LobbyState['screen']) => void;
   setMode: (mode: GameMode) => void;
@@ -21,6 +24,8 @@ interface LobbyState {
   setOnlinePlayers: (players: Player[]) => void;
   setIsCreator: (v: boolean) => void;
   setMyPlayerId: (id: number | null) => void;
+  setGameContractAddress: (address: string) => void;
+  setWalletAddress: (address: string) => void;
   reset: () => void;
 }
 
@@ -33,6 +38,8 @@ export const useLobbyStore = create<LobbyState>((set) => ({
   onlinePlayers: [],
   isCreator: false,
   myPlayerId: null,
+  gameContractAddress: '',
+  walletAddress: '',
 
   setScreen: (screen) => set({ screen }),
   setMode: (mode) => set({ mode }),
@@ -47,6 +54,8 @@ export const useLobbyStore = create<LobbyState>((set) => ({
   setOnlinePlayers: (onlinePlayers) => set({ onlinePlayers }),
   setIsCreator: (isCreator) => set({ isCreator }),
   setMyPlayerId: (myPlayerId) => set({ myPlayerId }),
+  setGameContractAddress: (gameContractAddress) => set({ gameContractAddress }),
+  setWalletAddress: (walletAddress) => set({ walletAddress }),
   reset: () =>
     set({
       screen: 'menu',
@@ -57,5 +66,7 @@ export const useLobbyStore = create<LobbyState>((set) => ({
       onlinePlayers: [],
       isCreator: false,
       myPlayerId: null,
+      gameContractAddress: '',
+      walletAddress: '',
     }),
 }));
