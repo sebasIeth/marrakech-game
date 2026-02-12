@@ -6,9 +6,10 @@ import type { BorderChoiceInfo, Direction } from '@/lib/game/types';
 interface BorderChoicePickerProps {
   borderInfo: BorderChoiceInfo;
   onChoose: (direction: Direction) => void;
+  disabled?: boolean;
 }
 
-export function BorderChoicePicker({ borderInfo, onChoose }: BorderChoicePickerProps) {
+export function BorderChoicePicker({ borderInfo, onChoose, disabled }: BorderChoicePickerProps) {
   return (
     <motion.div
       className="space-y-3"
@@ -51,11 +52,12 @@ export function BorderChoicePicker({ borderInfo, onChoose }: BorderChoicePickerP
             key={option.direction}
             className="flex-1 py-3 px-3 rounded-xl font-semibold text-sm text-white transition-colors shadow-sm"
             style={{
-              background: 'linear-gradient(135deg, #4A154B, #6B1F6E)',
+              background: disabled ? '#999' : 'linear-gradient(135deg, #4A154B, #6B1F6E)',
             }}
-            whileHover={{ scale: 1.03, y: -1 }}
-            whileTap={{ scale: 0.97 }}
-            onClick={() => onChoose(option.direction)}
+            whileHover={!disabled ? { scale: 1.03, y: -1 } : {}}
+            whileTap={!disabled ? { scale: 0.97 } : {}}
+            onClick={() => !disabled && onChoose(option.direction)}
+            disabled={disabled}
           >
             {option.label}
           </motion.button>

@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useCallback } from 'react';
+import { useEffect, useCallback, useRef } from 'react';
 import { motion } from 'framer-motion';
 import type { TributeInfo, Player } from '@/lib/game/types';
 
@@ -8,20 +8,27 @@ interface TributeDisplayProps {
   tribute: TributeInfo | null;
   players: Player[];
   onContinue: () => void;
+  disabled?: boolean;
 }
 
-export function TributeDisplay({ tribute, players, onContinue }: TributeDisplayProps) {
+export function TributeDisplay({ tribute, players, onContinue, disabled }: TributeDisplayProps) {
   const fromPlayer = tribute ? players.find((p) => p.id === tribute.fromPlayerId) : null;
   const toPlayer = tribute ? players.find((p) => p.id === tribute.toPlayerId) : null;
   const hasTribute = tribute && tribute.amount > 0;
 
   const stableOnContinue = useCallback(onContinue, [onContinue]);
+  const firedRef = useRef(false);
 
   useEffect(() => {
+    // Don't auto-fire if disabled (e.g. blockchain tx in progress) or already fired
+    if (disabled || firedRef.current) return;
     const delay = hasTribute ? 2400 : 1200;
-    const timer = setTimeout(stableOnContinue, delay);
+    const timer = setTimeout(() => {
+      firedRef.current = true;
+      stableOnContinue();
+    }, delay);
     return () => clearTimeout(timer);
-  }, [stableOnContinue, hasTribute]);
+  }, [stableOnContinue, hasTribute, disabled]);
 
   if (hasTribute) {
     return (

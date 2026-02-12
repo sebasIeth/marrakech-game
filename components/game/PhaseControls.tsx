@@ -99,6 +99,7 @@ export function PhaseControls({
           <BorderChoicePicker
             borderInfo={borderChoiceInfo}
             onChoose={onBorderChoice}
+            disabled={disabled}
           />
         )}
 
@@ -107,6 +108,7 @@ export function PhaseControls({
             tribute={currentTribute}
             players={players}
             onContinue={onTributeContinue}
+            disabled={disabled}
           />
         )}
 
@@ -119,8 +121,9 @@ export function PhaseControls({
                 </p>
                 {selectedPlacement && (
                   <button
-                    className="w-full py-3 rounded-xl bg-[#4A154B] text-white font-semibold text-sm hover:bg-[#5C1B5E] transition-colors shadow-sm"
+                    className="w-full py-3 rounded-xl bg-[#4A154B] text-white font-semibold text-sm hover:bg-[#5C1B5E] transition-colors shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
                     onClick={onPlaceConfirm}
+                    disabled={disabled}
                   >
                     Confirmar colocación
                   </button>

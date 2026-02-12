@@ -265,6 +265,7 @@ export default function GamePage() {
                   onBorderChoice={handleBorderChoice}
                   onTributeContinue={handleTributeContinue}
                   onPlaceConfirm={handlePlaceConfirm}
+                  disabled={isBlockchain && blockchain.txStatus !== 'idle'}
                 />
               )}
             </>

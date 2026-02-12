@@ -26,6 +26,8 @@ export function useBlockchainGame() {
 
   // Salt for commit-reveal dice
   const saltRef = useRef<bigint | null>(null);
+  // Guard against concurrent writes
+  const writingRef = useRef(false);
   // Contract phase (raw, not mapped)
   const [contractPhase, setContractPhase] = useState<number>(0);
 
@@ -141,6 +143,10 @@ export function useBlockchainGame() {
       args: any[],
       message: string,
     ) => {
+      // Guard: skip if already writing
+      if (writingRef.current) return;
+      writingRef.current = true;
+
       setTxStatus('pending');
       setTxMessage(message);
       setTxError('');
@@ -174,6 +180,8 @@ export function useBlockchainGame() {
           setTxStatus('idle');
           setTxError('');
         }, 5000);
+      } finally {
+        writingRef.current = false;
       }
     },
     [writeContractAsync, gameContractAddress, publicClient, refreshState],
