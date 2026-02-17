@@ -1,19 +1,6 @@
 import type { Metadata } from 'next';
-import { Playfair_Display, Inter } from 'next/font/google';
 import './globals.css';
 import WagmiProvider from '@/components/providers/WagmiProvider';
-
-const playfair = Playfair_Display({
-  variable: '--font-display',
-  subsets: ['latin'],
-  display: 'swap',
-});
-
-const inter = Inter({
-  variable: '--font-body',
-  subsets: ['latin'],
-  display: 'swap',
-});
 
 export const metadata: Metadata = {
   title: 'Marrakech - El Juego de Alfombras',
@@ -27,7 +14,13 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="es">
-      <body className={`${playfair.variable} ${inter.variable} antialiased font-body`}>
+      <head>
+        <link
+          rel="stylesheet"
+          href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&family=Playfair+Display:wght@400..900&display=swap"
+        />
+      </head>
+      <body className="antialiased font-body" style={{ '--font-display': "'Playfair Display', Georgia, serif", '--font-body': "'Inter', system-ui, sans-serif" } as React.CSSProperties}>
         <WagmiProvider>
           {children}
         </WagmiProvider>

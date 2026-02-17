@@ -3,11 +3,11 @@
 import { useEffect, useState, useCallback, useRef } from 'react';
 import { useParams } from 'next/navigation';
 import { useGameStore } from '@/lib/store/gameStore';
-import GameBoard from '@/components/game/GameBoard';
-import PlayerPanel from '@/components/game/PlayerPanel';
-import GameHeader from '@/components/game/GameHeader';
-import ActionLog from '@/components/game/ActionLog';
-import GameOverScreen from '@/components/game/GameOverScreen';
+import { GameBoard } from '@/components/game/GameBoard';
+import { PlayerPanel } from '@/components/game/PlayerPanel';
+import { GameHeader } from '@/components/game/GameHeader';
+import { ActionLog } from '@/components/game/ActionLog';
+import { GameOverScreen } from '@/components/game/GameOverScreen';
 import type { GameState } from '@/lib/game/types';
 
 /**
@@ -159,15 +159,41 @@ export default function ArenaMatchPage() {
 
       {/* Game Display */}
       <div className="p-4">
-        <GameHeader />
+        <GameHeader
+          currentPlayer={store.players[store.currentPlayerIndex]}
+          phase={store.phase}
+          turnNumber={store.turnNumber}
+        />
         <div className="flex flex-col lg:flex-row gap-4 max-w-7xl mx-auto">
-          <PlayerPanel />
+          <PlayerPanel
+            players={store.players}
+            currentPlayerIndex={store.currentPlayerIndex}
+          />
           <div className="flex-1">
-            <GameBoard />
+            <GameBoard
+              board={store.board}
+              assam={store.assam}
+              validPlacements={store.validPlacements}
+              selectedPlacement={store.selectedPlacement}
+              currentTribute={store.currentTribute}
+              currentPlayerId={store.players[store.currentPlayerIndex]?.id ?? 0}
+              phase={store.phase}
+              movePath={store.movePath}
+              onCellClick={() => {}}
+              onPlacementSelect={() => {}}
+            />
           </div>
-          <ActionLog />
+          <ActionLog actions={store.actionLog} />
         </div>
-        {store.gameOver && <GameOverScreen />}
+        {store.gameOver && (
+          <GameOverScreen
+            finalScores={store.finalScores}
+            players={store.players}
+            winner={store.winner}
+            onPlayAgain={() => {}}
+            onBackToMenu={() => window.location.href = '/'}
+          />
+        )}
       </div>
     </div>
   );
